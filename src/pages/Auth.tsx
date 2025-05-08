@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -39,8 +40,15 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [isLogin, setIsLogin] = useState(tabParam !== "register");
   const { user, signIn, signUp, loading } = useAuth();
+  
+  useEffect(() => {
+    // Update tab state when URL parameters change
+    setIsLogin(tabParam !== "register");
+  }, [tabParam]);
   
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -60,17 +68,25 @@ const Auth = () => {
     },
   });
 
-  const onLoginSubmit = (data: LoginFormValues) => {
-    signIn(data.email, data.password);
+  const onLoginSubmit = async (data: LoginFormValues) => {
+    try {
+      await signIn(data.email, data.password);
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
-  const onRegisterSubmit = (data: RegisterFormValues) => {
-    signUp(
-      data.email,
-      data.password,
-      data.userType as "client" | "professional",
-      data.name
-    );
+  const onRegisterSubmit = async (data: RegisterFormValues) => {
+    try {
+      await signUp(
+        data.email,
+        data.password,
+        data.userType as "client" | "professional",
+        data.name
+      );
+    } catch (error) {
+      console.error("Registration error:", error);
+    }
   };
 
   if (user && !loading) {
@@ -90,7 +106,7 @@ const Auth = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="login" onValueChange={(v) => setIsLogin(v === "login")}>
+              <Tabs defaultValue={tabParam === "register" ? "register" : "login"} onValueChange={(v) => setIsLogin(v === "login")}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="login">Entrar</TabsTrigger>
                   <TabsTrigger value="register">Cadastrar</TabsTrigger>

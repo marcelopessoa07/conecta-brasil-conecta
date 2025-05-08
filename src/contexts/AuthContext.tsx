@@ -106,6 +106,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     name: string
   ) => {
     try {
+      // First check if the email is already registered
+      const { data: existingUsers, error: checkError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", email);
+      
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
+      }
+      
+      if (existingUsers && existingUsers.length > 0) {
+        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        return;
+      }
+
+      // If email is not registered, proceed with signup
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -120,7 +136,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       toast.success("Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.");
     } catch (error: any) {
-      toast.error(error.message || "Falha no cadastro. Tente novamente.");
+      // Check for specific error messages
+      if (error.message?.includes("User already registered")) {
+        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+      } else {
+        toast.error(error.message || "Falha no cadastro. Tente novamente.");
+      }
     }
   };
 

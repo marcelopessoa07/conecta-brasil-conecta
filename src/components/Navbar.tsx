@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import Navigation from '@/components/Navigation';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,58 +28,8 @@ const Navbar = () => {
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
-            {!user ? (
-              <>
-                <Link to="/#como-funciona" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Como Funciona
-                </Link>
-                <Link to="/#para-clientes" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Para Clientes
-                </Link>
-                <Link to="/#para-prestadores" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Para Prestadores
-                </Link>
-                <Link to="/#servicos" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Serviços
-                </Link>
-                <Link to="/#faq" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  FAQ
-                </Link>
-                <Button 
-                  variant="outline" 
-                  className="ml-4 border-primary text-primary hover:bg-primary hover:text-white"
-                  onClick={() => navigate("/auth")}
-                >
-                  Entrar
-                </Button>
-                <Button 
-                  variant="default" 
-                  className="ml-2 bg-primary text-white hover:bg-primary/90"
-                  onClick={() => navigate("/auth?tab=register")}
-                >
-                  Cadastrar
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Dashboard
-                </Link>
-                {user.profile?.user_type === 'client' && (
-                  <Link to="/new-request" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                    Novo Pedido
-                  </Link>
-                )}
-                <Button 
-                  variant="outline" 
-                  className="ml-4 border-primary text-primary hover:bg-primary hover:text-white"
-                  onClick={() => signOut()}
-                >
-                  Sair
-                </Button>
-              </>
-            )}
+          <div className="hidden md:flex md:items-center">
+            <Navigation />
           </div>
 
           {/* Mobile menu button */}
