@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceRequestMarketplace from "./ServiceRequestMarketplace";
 import ProviderCredits from "./ProviderCredits";
+import UnlockedContacts from "./UnlockedContacts";
+import ProfileEditor from "./ProfileEditor";
+import PortfolioManager from "./PortfolioManager";
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState("marketplace");
@@ -19,6 +22,7 @@ const ProviderDashboard = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="marketplace">Oportunidades</TabsTrigger>
           <TabsTrigger value="unlocks">Contatos Desbloqueados</TabsTrigger>
+          <TabsTrigger value="portfolio">Meu Portfólio</TabsTrigger>
           <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
         </TabsList>
         
@@ -39,7 +43,18 @@ const ProviderDashboard = () => {
               <CardTitle>Contatos Desbloqueados</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Lista de contatos de clientes que você desbloqueou (em desenvolvimento)</p>
+              <UnlockedContacts />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="portfolio" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Portfólio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PortfolioManager />
             </CardContent>
           </Card>
         </TabsContent>
@@ -50,7 +65,7 @@ const ProviderDashboard = () => {
               <CardTitle>Informações do Perfil</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Área para gerenciar informações do perfil (em desenvolvimento)</p>
+              <ProfileEditor />
             </CardContent>
           </Card>
         </TabsContent>

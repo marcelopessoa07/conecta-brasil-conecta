@@ -1,19 +1,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
+import { Database } from "@/integrations/supabase/database-types";
 
-type ServiceRequest = {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  created_at: string;
-  location: string;
-};
+type ServiceRequest = Database['public']['Tables']['service_requests']['Row'];
 
 const ServiceRequestList = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -23,7 +18,7 @@ const ServiceRequestList = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       if (!user?.id) return;
-
+      
       try {
         const { data, error } = await supabase
           .from("service_requests")
@@ -47,59 +42,65 @@ const ServiceRequestList = () => {
     fetchRequests();
   }, [user?.id]);
 
-  const statusColors: Record<string, string> = {
-    open: "bg-green-500",
-    in_progress: "bg-yellow-500",
-    completed: "bg-blue-500",
-    cancelled: "bg-red-500",
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "open":
+        return <Badge variant="default">Em aberto</Badge>;
+      case "in_progress":
+        return <Badge variant="secondary">Em andamento</Badge>;
+      case "completed":
+        return <Badge variant="outline">Concluído</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive">Cancelado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   if (loading) {
-    return <div>Carregando pedidos...</div>;
+    return <div>Carregando solicitações...</div>;
   }
 
   if (requests.length === 0) {
     return (
       <div className="text-center py-8">
-        <p>Você ainda não tem pedidos de serviço.</p>
+        <p>Você ainda não tem solicitações de serviço.</p>
+        <Button className="mt-4" asChild>
+          <a href="/new-request">Criar Solicitação</a>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="px-4 py-2 text-left">Título</th>
-            <th className="px-4 py-2 text-left">Categoria</th>
-            <th className="px-4 py-2 text-left">Local</th>
-            <th className="px-4 py-2 text-left">Data</th>
-            <th className="px-4 py-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((request) => (
-            <tr key={request.id} className="border-b hover:bg-gray-50">
-              <td className="px-4 py-2">{request.title}</td>
-              <td className="px-4 py-2">{request.category}</td>
-              <td className="px-4 py-2">{request.location}</td>
-              <td className="px-4 py-2">
-                {format(new Date(request.created_at), "dd/MM/yyyy", { locale: ptBR })}
-              </td>
-              <td className="px-4 py-2">
-                <Badge className={statusColors[request.status] || "bg-gray-500"}>
-                  {request.status === "open" && "Aberto"}
-                  {request.status === "in_progress" && "Em andamento"}
-                  {request.status === "completed" && "Concluído"}
-                  {request.status === "cancelled" && "Cancelado"}
-                  {!["open", "in_progress", "completed", "cancelled"].includes(request.status) && request.status}
-                </Badge>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-4">
+      {requests.map((request) => (
+        <div
+          key={request.id}
+          className="p-4 border rounded-lg flex flex-col md:flex-row md:items-center justify-between"
+        >
+          <div className="mb-4 md:mb-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold">{request.title}</h3>
+              {getStatusBadge(request.status)}
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">
+              {format(new Date(request.created_at), "dd 'de' MMMM 'de' yyyy", {
+                locale: ptBR,
+              })}
+            </p>
+            <p className="text-sm">{request.description.substring(0, 100)}...</p>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline">
+              Editar
+            </Button>
+            <Button size="sm" variant="outline">
+              Ver Detalhes
+            </Button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

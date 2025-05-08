@@ -7,17 +7,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/database-types";
 
-type ServiceRequest = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  location: string;
-  postal_code: string;
-  created_at: string;
-  preferred_date: string | null;
-};
+type ServiceRequest = Database['public']['Tables']['service_requests']['Row'];
 
 const ServiceRequestMarketplace = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
