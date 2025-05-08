@@ -74,75 +74,80 @@ const ServiceRequestMarketplace = () => {
       return;
     }
 
-    // 1. Check if user has enough credits
-    const { data: creditsData, error: creditsError } = await supabase
-      .from("provider_credits")
-      .select("credits")
-      .eq("provider_id", user.id)
-      .single();
+    try {
+      // 1. Check if user has enough credits
+      const { data: creditsData, error: creditsError } = await supabase
+        .from("provider_credits")
+        .select("credits")
+        .eq("provider_id", user.id)
+        .single();
 
-    if (creditsError || !creditsData) {
-      toast.error("Erro ao verificar seus créditos. Tente novamente.");
-      console.error("Error checking credits:", creditsError);
-      return;
-    }
-
-    if (creditsData.credits < 1) {
-      toast.error("Você não tem créditos suficientes para desbloquear este contato.");
-      return;
-    }
-
-    // 2. Create contact unlock record
-    const { error: unlockError } = await supabase
-      .from("contact_unlocks")
-      .insert({
-        provider_id: user.id,
-        request_id: requestId,
-        credits_used: 1
-      });
-
-    if (unlockError) {
-      if (unlockError.code === "23505") { // Unique violation
-        toast.error("Você já desbloqueou este contato anteriormente.");
-      } else {
-        toast.error("Erro ao desbloquear contato. Tente novamente.");
-        console.error("Error creating unlock:", unlockError);
+      if (creditsError || !creditsData) {
+        toast.error("Erro ao verificar seus créditos. Tente novamente.");
+        console.error("Error checking credits:", creditsError);
+        return;
       }
-      return;
+
+      if (creditsData.credits < 1) {
+        toast.error("Você não tem créditos suficientes para desbloquear este contato.");
+        return;
+      }
+
+      // 2. Create contact unlock record
+      const { error: unlockError } = await supabase
+        .from("contact_unlocks")
+        .insert({
+          provider_id: user.id,
+          request_id: requestId,
+          credits_used: 1
+        });
+
+      if (unlockError) {
+        if (unlockError.code === "23505") { // Unique violation
+          toast.error("Você já desbloqueou este contato anteriormente.");
+        } else {
+          toast.error("Erro ao desbloquear contato. Tente novamente.");
+          console.error("Error creating unlock:", unlockError);
+        }
+        return;
+      }
+
+      // 3. Reduce credits
+      const { error: updateError } = await supabase
+        .from("provider_credits")
+        .update({ 
+          credits: creditsData.credits - 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq("provider_id", user.id);
+
+      if (updateError) {
+        toast.error("Erro ao atualizar seus créditos. Contate o suporte.");
+        console.error("Error updating credits:", updateError);
+        return;
+      }
+
+      // 4. Record transaction
+      await supabase
+        .from("credit_transactions")
+        .insert({
+          provider_id: user.id,
+          amount: -1,
+          transaction_type: "unlock",
+          status: "completed"
+        });
+
+      // 5. Update UI
+      setUnlocks(prev => ({
+        ...prev,
+        [requestId]: true
+      }));
+
+      toast.success("Contato desbloqueado com sucesso!");
+    } catch (error) {
+      console.error("Error unlocking contact:", error);
+      toast.error("Ocorreu um erro ao desbloquear o contato.");
     }
-
-    // 3. Reduce credits
-    const { error: updateError } = await supabase
-      .from("provider_credits")
-      .update({ 
-        credits: creditsData.credits - 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq("provider_id", user.id);
-
-    if (updateError) {
-      toast.error("Erro ao atualizar seus créditos. Contate o suporte.");
-      console.error("Error updating credits:", updateError);
-      return;
-    }
-
-    // 4. Record transaction
-    await supabase
-      .from("credit_transactions")
-      .insert({
-        provider_id: user.id,
-        amount: -1,
-        transaction_type: "unlock",
-        status: "completed"
-      });
-
-    // 5. Update UI
-    setUnlocks(prev => ({
-      ...prev,
-      [requestId]: true
-    }));
-
-    toast.success("Contato desbloqueado com sucesso!");
   };
 
   if (loading) {

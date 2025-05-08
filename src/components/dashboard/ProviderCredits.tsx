@@ -36,7 +36,21 @@ const ProviderCredits = () => {
           .single();
 
         if (error) {
-          console.error("Error fetching credits:", error);
+          // If no credits record exists yet, create one with 0 credits
+          if (error.code === 'PGRST116') {
+            const { error: insertError } = await supabase
+              .from("provider_credits")
+              .insert({ 
+                provider_id: user.id,
+                credits: 0
+              });
+            
+            if (!insertError) {
+              setCredits(0);
+            }
+          } else {
+            console.error("Error fetching credits:", error);
+          }
           return;
         }
 

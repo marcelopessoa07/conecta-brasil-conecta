@@ -51,7 +51,7 @@ const UnlockedContacts = () => {
               location,
               created_at,
               client_id,
-              client:client_id (
+              client:profiles!client_id (
                 id, 
                 name, 
                 email, 
@@ -122,16 +122,18 @@ const UnlockedContacts = () => {
               <div className="bg-gray-50 p-4 rounded-lg mt-4 md:mt-0 md:ml-4 md:w-64">
                 <h4 className="font-medium mb-2 flex items-center">
                   <User className="h-4 w-4 mr-2" />
-                  {contact.request.client.name}
+                  {contact.request.client?.name || "Cliente"}
                 </h4>
                 <div className="space-y-2">
-                  <p className="text-sm flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <a href={`mailto:${contact.request.client.email}`} className="text-blue-600 hover:underline">
-                      {contact.request.client.email}
-                    </a>
-                  </p>
-                  {contact.request.client.phone && (
+                  {contact.request.client?.email && (
+                    <p className="text-sm flex items-center">
+                      <Mail className="h-4 w-4 mr-2" />
+                      <a href={`mailto:${contact.request.client.email}`} className="text-blue-600 hover:underline">
+                        {contact.request.client.email}
+                      </a>
+                    </p>
+                  )}
+                  {contact.request.client?.phone && (
                     <p className="text-sm flex items-center">
                       <Phone className="h-4 w-4 mr-2" />
                       <a href={`tel:${contact.request.client.phone}`} className="text-blue-600 hover:underline">

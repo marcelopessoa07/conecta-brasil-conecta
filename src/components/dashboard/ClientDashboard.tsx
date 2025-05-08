@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceRequestList from "./ServiceRequestList";
 import { Link } from "react-router-dom";
 import { PlusCircle } from "lucide-react";
-import ProfileEditor from "./ProfileEditor";
+import ClientProfileEditor from "./ClientProfileEditor";
 
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState("requests");
@@ -45,7 +45,7 @@ const ClientDashboard = () => {
               <CardTitle>Informações do Perfil</CardTitle>
             </CardHeader>
             <CardContent>
-              <ProfileEditor />
+              <ClientProfileEditor />
             </CardContent>
           </Card>
         </TabsContent>

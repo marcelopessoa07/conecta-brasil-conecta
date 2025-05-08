@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contact_unlocks: {
+        Row: {
+          credits_used: number
+          id: string
+          provider_id: string
+          request_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          credits_used?: number
+          id?: string
+          provider_id: string
+          request_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          credits_used?: number
+          id?: string
+          provider_id?: string
+          request_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_unlocks_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_unlocks_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_method: string | null
+          provider_id: string
+          status: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          provider_id: string
+          status: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          provider_id?: string
+          status?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -71,6 +148,152 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: []
+      }
+      provider_credits: {
+        Row: {
+          credits: number
+          id: string
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          credits?: number
+          id?: string
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          credits?: number
+          id?: string
+          provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_credits_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_portfolio: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          provider_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          provider_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          provider_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_portfolio_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      request_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_images_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          category: string
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          postal_code: string | null
+          preferred_date: string | null
+          status: string
+          subcategory: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          client_id: string
+          created_at?: string
+          description: string
+          id?: string
+          location: string
+          postal_code?: string | null
+          preferred_date?: string | null
+          status?: string
+          subcategory?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          postal_code?: string | null
+          preferred_date?: string | null
+          status?: string
+          subcategory?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -4,98 +4,97 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Image, Plus, Trash2, Edit } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Grid, Trash2, Plus, Upload, Image } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-interface PortfolioItem {
+type PortfolioItem = {
   id: string;
+  provider_id: string;
   title: string;
   description: string | null;
   image_url: string;
   created_at: string;
-}
+};
 
 const PortfolioManager = () => {
+  const { user } = useAuth();
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { user } = useAuth();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPortfolioItems();
-  }, [user?.id]);
+    const fetchPortfolio = async () => {
+      if (!user?.id) return;
 
-  const fetchPortfolioItems = async () => {
-    if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from("provider_portfolio")
+          .select("*")
+          .eq("provider_id", user.id)
+          .order("created_at", { ascending: false });
 
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("provider_portfolio")
-        .select("*")
-        .eq("provider_id", user.id)
-        .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Error fetching portfolio:", error);
+          return;
+        }
 
-      if (error) {
-        console.error("Error fetching portfolio:", error);
-        return;
+        setPortfolioItems(data || []);
+      } catch (error) {
+        console.error("Error in fetch operation:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setPortfolioItems(data || []);
-    } catch (error) {
-      console.error("Error in fetch operation:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchPortfolio();
+  }, [user?.id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setSelectedFile(file);
-    
+    setImageFile(file);
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
+      setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id || !selectedFile || !title) {
-      toast.error("Preencha o título e selecione uma imagem");
+    if (!user?.id || !imageFile || !title.trim()) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
 
     setIsUploading(true);
     try {
       // 1. Upload image to storage
-      const fileExt = selectedFile.name.split(".").pop();
+      const fileExt = imageFile.name.split(".").pop();
       const filePath = `portfolio/${user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError, data } = await supabase.storage
-        .from("service_images")
-        .upload(filePath, selectedFile);
+
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from("portfolio")
+        .upload(filePath, imageFile);
 
       if (uploadError) {
         toast.error("Erro ao fazer upload da imagem");
@@ -104,11 +103,11 @@ const PortfolioManager = () => {
       }
 
       // 2. Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from("service_images")
+      const { data: publicURL } = supabase.storage
+        .from("portfolio")
         .getPublicUrl(filePath);
 
-      if (!publicUrlData?.publicUrl) {
+      if (!publicURL) {
         toast.error("Erro ao obter URL da imagem");
         return;
       }
@@ -119,201 +118,218 @@ const PortfolioManager = () => {
         .insert({
           provider_id: user.id,
           title,
-          description: description || null,
-          image_url: publicUrlData.publicUrl
+          description,
+          image_url: publicURL.publicUrl,
         });
 
       if (insertError) {
         toast.error("Erro ao adicionar item ao portfólio");
-        console.error("Error inserting portfolio item:", insertError);
+        console.error("Error creating portfolio item:", insertError);
         return;
       }
 
-      toast.success("Item adicionado ao portfólio com sucesso!");
+      // 4. Reset form and refresh data
       setTitle("");
       setDescription("");
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      setDialogOpen(false);
-      fetchPortfolioItems();
+      setImageFile(null);
+      setImagePreview(null);
+      setOpen(false);
+      
+      // 5. Fetch updated portfolio
+      const { data: updatedData, error } = await supabase
+        .from("provider_portfolio")
+        .select("*")
+        .eq("provider_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (!error && updatedData) {
+        setPortfolioItems(updatedData);
+      }
+      
+      toast.success("Item adicionado ao portfólio com sucesso");
     } catch (error) {
-      console.error("Error in upload operation:", error);
+      console.error("Error in portfolio submission:", error);
       toast.error("Erro ao adicionar item ao portfólio");
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este item?")) return;
+  const handleDelete = async (id: string, imageUrl: string) => {
+    if (!confirm("Tem certeza que deseja excluir este item do portfólio?")) {
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      // 1. Delete portfolio item
+      const { error: deleteError } = await supabase
         .from("provider_portfolio")
         .delete()
         .eq("id", id);
 
-      if (error) {
-        toast.error("Erro ao excluir item");
-        console.error("Error deleting portfolio item:", error);
+      if (deleteError) {
+        toast.error("Erro ao excluir item do portfólio");
+        console.error("Error deleting portfolio item:", deleteError);
         return;
       }
+      
+      // 2. Delete image from storage (if possible - may fail if URL format is not recognized)
+      try {
+        const path = imageUrl.split("/").slice(-2).join("/");
+        if (path) {
+          await supabase.storage.from("portfolio").remove([path]);
+        }
+      } catch (imgError) {
+        console.warn("Could not delete image file:", imgError);
+      }
 
-      toast.success("Item excluído com sucesso");
+      // 3. Update portfolio list
       setPortfolioItems(portfolioItems.filter(item => item.id !== id));
+      toast.success("Item removido do portfólio");
     } catch (error) {
       console.error("Error in delete operation:", error);
-      toast.error("Erro ao excluir item");
+      toast.error("Erro ao excluir item do portfólio");
     }
   };
 
-  if (loading && portfolioItems.length === 0) {
-    return <div>Carregando portfólio...</div>;
+  if (loading) {
+    return <div>Carregando seu portfólio...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-semibold">Seu Portfólio</h2>
-          <p className="text-sm text-gray-500">
-            Adicione fotos de seus trabalhos para demonstrar sua qualidade
+          <p className="text-sm text-muted-foreground">
+            Adicione fotos de seus trabalhos para atrair mais clientes
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="mr-2 h-4 w-4" /> Adicionar Trabalho
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Item
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle>Adicionar Trabalho ao Portfólio</DialogTitle>
-              <DialogDescription>
-                Mostre aos clientes exemplos dos seus melhores trabalhos.
-              </DialogDescription>
+              <DialogTitle>Adicionar ao Portfólio</DialogTitle>
             </DialogHeader>
-
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">Título*</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Reforma de Cozinha"
-                    required
-                  />
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Descrição breve do trabalho realizado..."
-                    className="min-h-[80px]"
-                  />
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="image">Imagem*</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-md p-4">
-                    {previewUrl ? (
-                      <div className="relative">
-                        <img
-                          src={previewUrl}
-                          alt="Preview"
-                          className="max-h-[200px] mx-auto rounded-md"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                          onClick={() => {
-                            setSelectedFile(null);
-                            setPreviewUrl(null);
-                          }}
-                        >
-                          Remover
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-4">
-                        <Image className="h-10 w-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500 mb-2">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título*</Label>
+                <Input 
+                  id="title" 
+                  placeholder="Ex: Reforma de Banheiro"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea 
+                  id="description" 
+                  placeholder="Descreva o trabalho realizado..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="image">Imagem*</Label>
+                <div className="border-2 border-dashed rounded-md p-4 text-center">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="max-h-[200px] mx-auto object-contain"
+                      />
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="sm"
+                        className="absolute top-1 right-1 h-8 w-8 rounded-full p-0"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label htmlFor="image-upload" className="cursor-pointer block p-4">
+                      <div className="flex flex-col items-center">
+                        <Upload className="h-8 w-8 mb-2 text-gray-400" />
+                        <span className="text-sm text-gray-500">
                           Clique para selecionar uma imagem
-                        </p>
-                        <input
-                          type="file"
-                          id="image"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          required
-                        />
-                        <label htmlFor="image">
-                          <Button type="button" variant="outline" size="sm">
-                            Escolher Arquivo
-                          </Button>
-                        </label>
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        required
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
-
-              <DialogFooter>
-                <Button type="submit" disabled={isUploading || !selectedFile}>
-                  {isUploading ? "Enviando..." : "Adicionar ao Portfólio"}
-                </Button>
-              </DialogFooter>
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isUploading || !imageFile}
+              >
+                {isUploading ? "Adicionando..." : "Adicionar ao Portfólio"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
       {portfolioItems.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-md">
-          <Image className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-          <h3 className="text-lg font-medium mb-2">Seu portfólio está vazio</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Adicione imagens dos seus trabalhos para impressionar clientes potenciais.
+        <div className="bg-muted/50 rounded-lg p-8 text-center">
+          <Image className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+          <h3 className="text-lg font-medium">Seu portfólio está vazio</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            Adicione fotos dos seus trabalhos para atrair mais clientes
           </p>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>Adicionar Primeiro Trabalho</Button>
-            </DialogTrigger>
-          </Dialog>
+          <Button 
+            onClick={() => setOpen(true)}
+            variant="secondary"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Primeiro Item
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {portfolioItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              <div className="aspect-w-16 aspect-h-9 bg-gray-100 relative">
+            <Card key={item.id}>
+              <div className="aspect-square overflow-hidden relative">
                 <img
                   src={item.image_url}
                   alt={item.title}
-                  className="object-cover w-full h-48"
+                  className="object-cover w-full h-full"
                 />
-                <div className="absolute top-2 right-2 flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                  onClick={() => handleDelete(item.id, item.image_url)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-1">{item.title}</h3>
+                <h3 className="font-semibold">{item.title}</h3>
                 {item.description && (
-                  <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
                 )}
               </CardContent>
             </Card>
