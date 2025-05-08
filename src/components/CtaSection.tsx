@@ -1,8 +1,21 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const CtaSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleServiceButtonClick = () => {
+    if (user) {
+      navigate("/new-request");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <section className="bg-accent py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,10 +28,18 @@ const CtaSection = () => {
             de serviço do Brasil.
           </p>
           <div className="mt-10 flex justify-center gap-4 flex-col sm:flex-row">
-            <Button size="lg" className="bg-white text-accent hover:bg-white/90">
+            <Button 
+              size="lg" 
+              className="bg-white text-accent hover:bg-white/90"
+              onClick={handleServiceButtonClick}
+            >
               Preciso de um serviço
             </Button>
-            <Button size="lg" className="bg-secondary text-accent hover:bg-secondary/90">
+            <Button 
+              size="lg" 
+              className="bg-secondary text-accent hover:bg-secondary/90"
+              onClick={() => navigate("/auth")}
+            >
               Sou prestador de serviço
             </Button>
           </div>

@@ -1,7 +1,20 @@
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleServiceButtonClick = () => {
+    if (user) {
+      navigate("/new-request");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <div className="relative bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -27,12 +40,19 @@ const HeroSection = () => {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row sm:justify-center lg:justify-start gap-4">
                 <div>
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-white rounded-md py-3 px-8 flex items-center justify-center">
+                  <Button 
+                    className="w-full bg-accent hover:bg-accent/90 text-white rounded-md py-3 px-8 flex items-center justify-center"
+                    onClick={handleServiceButtonClick}
+                  >
                     Preciso de um serviço
                   </Button>
                 </div>
                 <div>
-                  <Button variant="outline" className="w-full border-secondary bg-secondary text-accent hover:bg-secondary/90 rounded-md py-3 px-8 flex items-center justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-secondary bg-secondary text-accent hover:bg-secondary/90 rounded-md py-3 px-8 flex items-center justify-center"
+                    onClick={() => navigate("/auth")}
+                  >
                     Sou prestador de serviço
                   </Button>
                 </div>
