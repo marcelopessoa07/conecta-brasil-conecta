@@ -75,6 +75,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (profile && user) {
+        // Make sure the user type is correctly set
+        console.log("Profile data fetched:", profile);
         setUser(currentUser => currentUser ? { ...currentUser, profile } : null);
       }
     } catch (error) {
@@ -128,7 +130,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           data: {
             name,
-            user_type: userType === "professional" ? "professional" : "client",
+            user_type: userType,
           },
         },
       });

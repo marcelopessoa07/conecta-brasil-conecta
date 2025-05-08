@@ -17,6 +17,12 @@ const Dashboard = () => {
     }
   }, [loading]);
 
+  useEffect(() => {
+    if (user?.profile) {
+      console.log("Dashboard user type:", user.profile.user_type);
+    }
+  }, [user]);
+
   if (!isInitialized) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
@@ -26,6 +32,8 @@ const Dashboard = () => {
   }
 
   const userType = user.profile?.user_type || "client";
+  
+  console.log("Rendering dashboard for user type:", userType);
 
   return (
     <div className="min-h-screen flex flex-col">
