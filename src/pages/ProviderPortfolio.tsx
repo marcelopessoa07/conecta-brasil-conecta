@@ -1,12 +1,12 @@
-
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BadgeCheck, MapPin, Phone, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, MapPin, Phone, Mail, Star } from "lucide-react";
+import { Mail } from "lucide-react";
 
 type PortfolioItem = {
   id: string;
