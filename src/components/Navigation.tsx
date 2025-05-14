@@ -64,6 +64,17 @@ const Navigation = () => {
                 </NavigationMenuItem>
               )}
               
+              {user.profile?.user_type === "admin" && (
+                <NavigationMenuItem>
+                  <Link to="/admin">
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )}
+              
               <NavigationMenuItem>
                 <Button variant="ghost" onClick={handleSignOut} className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}>
                   <LogOut className="mr-2 h-4 w-4" />

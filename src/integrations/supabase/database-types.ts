@@ -15,7 +15,7 @@ export interface Database {
           id: string
           created_at: string
           updated_at: string
-          user_type: "client" | "professional"
+          user_type: "client" | "professional" | "admin"
           rating: number | null
           reviews_count: number | null
           verified: boolean | null
@@ -36,7 +36,7 @@ export interface Database {
           id: string
           created_at?: string
           updated_at?: string
-          user_type?: "client" | "professional"
+          user_type?: "client" | "professional" | "admin"
           rating?: number | null
           reviews_count?: number | null
           verified?: boolean | null
@@ -57,7 +57,7 @@ export interface Database {
           id?: string
           created_at?: string
           updated_at?: string
-          user_type?: "client" | "professional"
+          user_type?: "client" | "professional" | "admin"
           rating?: number | null
           reviews_count?: number | null
           verified?: boolean | null
