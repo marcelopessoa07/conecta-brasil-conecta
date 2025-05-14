@@ -275,6 +275,7 @@ export type Database = {
       service_requests: {
         Row: {
           category: string
+          category_id: string | null
           client_id: string
           created_at: string
           description: string
@@ -289,6 +290,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          category_id?: string | null
           client_id: string
           created_at?: string
           description: string
@@ -303,6 +305,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          category_id?: string | null
           client_id?: string
           created_at?: string
           description?: string

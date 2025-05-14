@@ -90,7 +90,7 @@ const NewRequest = () => {
         title: data.title,
         description: data.description,
         category: selectedCategory?.name || "", // Store the category name
-        category_id: data.category_id, // Also store the category ID
+        category_id: data.category_id, // Store the category ID
         subcategory: data.subcategory,
         location: data.location,
         postal_code: data.postal_code,
