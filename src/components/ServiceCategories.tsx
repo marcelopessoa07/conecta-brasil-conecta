@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 
 const categories = [
   {
@@ -68,12 +69,12 @@ const ServiceCategories = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <a
-            href="#"
+          <Link
+            to="/categorias"
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90"
           >
             Ver todas as categorias
-          </a>
+          </Link>
         </div>
       </div>
     </section>
