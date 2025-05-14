@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
-import { BadgeCheck, MapPin, Star } from "lucide-react";
+import { BadgeCheck, MapPin, Star, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PortfolioItem = {
@@ -13,7 +13,7 @@ type PortfolioItem = {
   provider_id: string;
   title: string;
   description: string | null;
-  image_url: string;
+  image_url: string | null;
   created_at: string;
 };
 
@@ -160,11 +160,17 @@ const ProviderPortfolio = () => {
               {portfolio.map((item) => (
                 <Card key={item.id}>
                   <div className="aspect-square overflow-hidden">
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="object-cover w-full h-full"
-                    />
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <Image className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-semibold">{item.title}</h3>

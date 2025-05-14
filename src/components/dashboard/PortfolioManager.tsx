@@ -92,7 +92,7 @@ const PortfolioManager = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id || !imageFile || !title.trim()) {
+    if (!user?.id || !title.trim()) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
@@ -105,56 +105,63 @@ const PortfolioManager = () => {
     setUploadError(null);
     
     try {
-      // 1. Upload image to storage
-      // Create a more reliable file path with timestamp and unique ID
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(2, 10);
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${timestamp}-${randomId}`;
-      const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
+      let imageUrl = "";
       
-      // Check if storage bucket exists, create if needed
-      const { data: buckets } = await supabase.storage.listBuckets();
-      if (!buckets?.find(bucket => bucket.name === 'portfolio')) {
-        await supabase.storage.createBucket('portfolio', {
-          public: true,
-          fileSizeLimit: 5242880 // 5MB
-        });
+      // Only upload image if one is provided
+      if (imageFile) {
+        // 1. Upload image to storage
+        // Create a more reliable file path with timestamp and unique ID
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(2, 10);
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${timestamp}-${randomId}`;
+        const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
+        
+        // Check if storage bucket exists, create if needed
+        const { data: buckets } = await supabase.storage.listBuckets();
+        if (!buckets?.find(bucket => bucket.name === 'portfolio')) {
+          await supabase.storage.createBucket('portfolio', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+          });
+        }
+
+        // Upload the file
+        const { error: uploadError, data: uploadData } = await supabase.storage
+          .from("portfolio")
+          .upload(filePath, imageFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: imageFile.type,
+          });
+
+        if (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          setUploadError("Erro ao fazer upload da imagem. Por favor, tente novamente.");
+          return;
+        }
+
+        // 2. Get public URL
+        const { data: publicURL } = supabase.storage
+          .from("portfolio")
+          .getPublicUrl(filePath);
+
+        if (!publicURL) {
+          setUploadError("Erro ao obter URL da imagem");
+          return;
+        }
+        
+        imageUrl = publicURL.publicUrl;
       }
 
-      // Upload the file
-      const { error: uploadError, data: uploadData } = await supabase.storage
-        .from("portfolio")
-        .upload(filePath, imageFile, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: imageFile.type,
-        });
-
-      if (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        setUploadError("Erro ao fazer upload da imagem. Por favor, tente novamente.");
-        return;
-      }
-
-      // 2. Get public URL
-      const { data: publicURL } = supabase.storage
-        .from("portfolio")
-        .getPublicUrl(filePath);
-
-      if (!publicURL) {
-        setUploadError("Erro ao obter URL da imagem");
-        return;
-      }
-
-      // 3. Create portfolio item
+      // 3. Create portfolio item with or without image
       const { error: insertError } = await supabase
         .from("provider_portfolio")
         .insert({
           provider_id: user.id,
           title,
           description,
-          image_url: publicURL.publicUrl,
+          image_url: imageUrl || null, // Use null if no image was provided
         });
 
       if (insertError) {
@@ -300,7 +307,7 @@ const PortfolioManager = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="image">Imagem*</Label>
+                <Label htmlFor="image">Imagem (opcional)</Label>
                 <div className="border-2 border-dashed rounded-md p-4 text-center">
                   {imagePreview ? (
                     <div className="relative">
@@ -339,7 +346,6 @@ const PortfolioManager = () => {
                         accept="image/*"
                         className="hidden"
                         onChange={handleFileChange}
-                        required
                       />
                     </label>
                   )}
@@ -352,7 +358,7 @@ const PortfolioManager = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isUploading || !imageFile}
+                disabled={isUploading}
               >
                 {isUploading ? "Adicionando..." : "Adicionar ao Portfólio"}
               </Button>
@@ -380,11 +386,17 @@ const PortfolioManager = () => {
           {portfolioItems.map((item) => (
             <Card key={item.id}>
               <div className="aspect-square overflow-hidden relative">
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="object-cover w-full h-full"
-                />
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={item.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <Image className="h-12 w-12 text-gray-400" />
+                  </div>
+                )}
                 <Button
                   variant="destructive"
                   size="icon"
