@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
 import RequestDetail from "./pages/RequestDetail";
 import AllCategories from "./pages/AllCategories";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/new-request" element={<NewRequest />} />
             <Route path="/request/:id" element={<RequestDetail />} />
             <Route path="/categorias" element={<AllCategories />} />
+            <Route path="/contato" element={<Contact />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

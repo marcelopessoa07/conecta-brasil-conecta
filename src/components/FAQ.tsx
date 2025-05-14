@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Accordion,
   AccordionContent,
@@ -82,12 +83,12 @@ const FAQ = () => {
           <p className="text-base text-gray-500">
             Ainda tem dúvidas? Entre em contato com nosso suporte
           </p>
-          <a
-            href="#"
+          <Link
+            to="/contato"
             className="mt-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90"
           >
             Fale Conosco
-          </a>
+          </Link>
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 const Footer = () => {
@@ -68,9 +69,9 @@ const Footer = () => {
             </h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <a href="#" className="text-base text-gray-600 hover:text-primary">
+                <Link to="/" className="text-base text-gray-600 hover:text-primary">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#como-funciona" className="text-base text-gray-600 hover:text-primary">
@@ -88,9 +89,14 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#servicos" className="text-base text-gray-600 hover:text-primary">
+                <Link to="/categorias" className="text-base text-gray-600 hover:text-primary">
                   Serviços
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/contato" className="text-base text-gray-600 hover:text-primary">
+                  Fale Conosco
+                </Link>
               </li>
             </ul>
           </div>
@@ -121,9 +127,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-base text-gray-600 hover:text-primary">
+                <Link to="/categorias" className="text-base text-gray-600 hover:text-primary">
                   Ver Todos
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
