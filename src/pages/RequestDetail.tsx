@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ExternalLink } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -173,7 +174,7 @@ const RequestDetail = () => {
       case "open":
         return <Badge variant="default">Em aberto</Badge>;
       case "accepted":
-        return <Badge variant="success" className="bg-green-500">Recebido por prestador</Badge>;
+        return <Badge className="bg-green-500">Recebido por prestador</Badge>;
       case "in_progress":
         return <Badge variant="secondary">Em andamento</Badge>;
       case "completed":

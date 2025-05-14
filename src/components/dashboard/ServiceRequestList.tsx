@@ -71,7 +71,7 @@ const ServiceRequestList = () => {
       case "open":
         return <Badge variant="default">Em aberto</Badge>;
       case "accepted":
-        return <Badge variant="success" className="bg-green-500">Recebido por prestador</Badge>;
+        return <Badge className="bg-green-500">Recebido por prestador</Badge>;
       case "in_progress":
         return <Badge variant="secondary">Em andamento</Badge>;
       case "completed":
