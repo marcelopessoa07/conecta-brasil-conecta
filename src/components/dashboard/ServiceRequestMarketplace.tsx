@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -154,12 +153,12 @@ const ServiceRequestMarketplace = () => {
     }
   };
 
-  const handleCopyProfileLink = () => {
+  const handleCopyPortfolioLink = () => {
     if (!user?.id) return;
     
-    const profileUrl = `${window.location.origin}/provider/${user.id}`;
-    navigator.clipboard.writeText(profileUrl);
-    toast.success("Link do seu perfil copiado para a área de transferência!");
+    const portfolioUrl = `${window.location.origin}/portfolio/${user.id}`;
+    navigator.clipboard.writeText(portfolioUrl);
+    toast.success("Link do seu portfólio copiado para a área de transferência!");
   };
 
   if (loading) {
@@ -177,12 +176,12 @@ const ServiceRequestMarketplace = () => {
   return (
     <div>
       <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
-        <h3 className="font-medium text-green-800 mb-2">Seu link de perfil para compartilhar com clientes</h3>
+        <h3 className="font-medium text-green-800 mb-2">Seu link de portfólio para compartilhar com clientes</h3>
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-white p-2 rounded border border-green-100 text-sm overflow-hidden text-ellipsis">
-            {`${window.location.origin}/provider/${user?.id}`}
+            {`${window.location.origin}/portfolio/${user?.id}`}
           </div>
-          <Button size="sm" onClick={handleCopyProfileLink} className="flex items-center">
+          <Button size="sm" onClick={handleCopyPortfolioLink} className="flex items-center">
             <Share2 className="h-4 w-4 mr-1" /> Copiar Link
           </Button>
         </div>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -229,10 +228,10 @@ const RequestDetail = () => {
                   <h3 className="font-medium text-lg">{providerProfile.name}</h3>
                   <p className="text-green-700">{providerProfile.profession}</p>
                   <Link 
-                    to={`/provider/${request.accepted_provider_id}`}
+                    to={`/portfolio/${request.accepted_provider_id}`}
                     className="text-primary flex items-center mt-2 hover:underline"
                   >
-                    Ver perfil completo <ExternalLink className="ml-1 h-4 w-4" />
+                    Ver portfólio do prestador <ExternalLink className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
               </div>

@@ -125,10 +125,10 @@ const ServiceRequestList = () => {
               <div className="mt-2 text-sm text-green-600">
                 <p>Prestador interessado: {request.provider_name}</p>
                 <Link 
-                  to={`/provider/${request.accepted_provider_id}`}
+                  to={`/portfolio/${request.accepted_provider_id}`}
                   className="text-primary inline-flex items-center mt-1 hover:underline"
                 >
-                  Ver perfil do prestador <ExternalLink className="ml-1 h-3 w-3" />
+                  Ver portfólio do prestador <ExternalLink className="ml-1 h-3 w-3" />
                 </Link>
               </div>
             )}
