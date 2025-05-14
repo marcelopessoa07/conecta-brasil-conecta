@@ -30,6 +30,7 @@ export interface Database {
           experience: string | null
           location: string | null
           service_areas: string[] | null
+          specialties: string[] | null
         }
         Insert: {
           id: string
@@ -50,6 +51,7 @@ export interface Database {
           experience?: string | null
           location?: string | null
           service_areas?: string[] | null
+          specialties?: string[] | null
         }
         Update: {
           id?: string
@@ -70,6 +72,7 @@ export interface Database {
           experience?: string | null
           location?: string | null
           service_areas?: string[] | null
+          specialties?: string[] | null
         }
       }
       service_requests: {
@@ -79,6 +82,7 @@ export interface Database {
           title: string
           description: string
           category: string
+          category_id: string
           subcategory: string | null
           location: string
           postal_code: string | null
@@ -93,6 +97,7 @@ export interface Database {
           title: string
           description: string
           category: string
+          category_id?: string
           subcategory?: string | null
           location: string
           postal_code?: string | null
@@ -107,11 +112,38 @@ export interface Database {
           title?: string
           description?: string
           category?: string
+          category_id?: string
           subcategory?: string | null
           location?: string
           postal_code?: string | null
           preferred_date?: string | null
           status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      service_categories: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          icon: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          icon?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          icon?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,11 +29,12 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { fetchServiceCategories, ServiceCategory } from "@/utils/serviceCategories";
 
 const formSchema = z.object({
   title: z.string().min(5, "Título deve ter pelo menos 5 caracteres"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  category: z.string().min(1, "Selecione uma categoria"),
+  category_id: z.string().min(1, "Selecione uma categoria"),
   subcategory: z.string().optional(),
   location: z.string().min(3, "Informe a localização"),
   postal_code: z.string().min(8, "Informe um CEP válido").max(9),
@@ -42,30 +43,30 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const categories = [
-  "Construção Civil",
-  "Elétrica",
-  "Hidráulica",
-  "Pintura",
-  "Limpeza",
-  "Jardinagem",
-  "Climatização",
-  "Móveis e Marcenaria",
-  "Segurança",
-  "Outros",
-];
-
 const NewRequest = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    const getCategories = async () => {
+      setLoadingCategories(true);
+      const data = await fetchServiceCategories();
+      setCategories(data);
+      setLoadingCategories(false);
+    };
+
+    getCategories();
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      category: "",
+      category_id: "",
       subcategory: "",
       location: "",
       postal_code: "",
@@ -81,11 +82,15 @@ const NewRequest = () => {
 
     setIsSubmitting(true);
     try {
+      // Find the selected category to get the name
+      const selectedCategory = categories.find(cat => cat.id === data.category_id);
+      
       const { error } = await supabase.from("service_requests").insert({
         client_id: user.id,
         title: data.title,
         description: data.description,
-        category: data.category,
+        category: selectedCategory?.name || "", // Store the category name
+        category_id: data.category_id, // Also store the category ID
         subcategory: data.subcategory,
         location: data.location,
         postal_code: data.postal_code,
@@ -162,13 +167,14 @@ const NewRequest = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="category"
+                      name="category_id"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Categoria</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
+                            disabled={loadingCategories}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -177,8 +183,8 @@ const NewRequest = () => {
                             </FormControl>
                             <SelectContent>
                               {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category}
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.icon} {category.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -250,7 +256,7 @@ const NewRequest = () => {
                   <Button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary/90"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || loadingCategories}
                   >
                     {isSubmitting ? "Enviando..." : "Criar Pedido de Serviço"}
                   </Button>

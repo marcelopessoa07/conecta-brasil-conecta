@@ -103,6 +103,7 @@ export type Database = {
           rating: number | null
           reviews_count: number | null
           service_areas: string[] | null
+          specialties: string[] | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
           verified: boolean | null
@@ -123,6 +124,7 @@ export type Database = {
           rating?: number | null
           reviews_count?: number | null
           service_areas?: string[] | null
+          specialties?: string[] | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verified?: boolean | null
@@ -143,6 +145,7 @@ export type Database = {
           rating?: number | null
           reviews_count?: number | null
           service_areas?: string[] | null
+          specialties?: string[] | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verified?: boolean | null
@@ -241,6 +244,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       service_requests: {
         Row: {

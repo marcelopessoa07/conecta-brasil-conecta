@@ -1,51 +1,24 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const categories = [
-  {
-    icon: "🔧",
-    name: "Encanador",
-    description: "Reparos em encanamentos, vazamentos e instalações hidráulicas",
-  },
-  {
-    icon: "⚡",
-    name: "Eletricista",
-    description: "Instalações e reparos elétricos residenciais e comerciais",
-  },
-  {
-    icon: "🧹",
-    name: "Limpeza",
-    description: "Serviços de limpeza residencial e comercial",
-  },
-  {
-    icon: "🎨",
-    name: "Pintor",
-    description: "Pintura de ambientes internos e externos",
-  },
-  {
-    icon: "🔨",
-    name: "Pedreiro",
-    description: "Construções, reformas e acabamentos",
-  },
-  {
-    icon: "🪓",
-    name: "Carpinteiro",
-    description: "Trabalhos em madeira, móveis e estruturas",
-  },
-  {
-    icon: "❄️",
-    name: "Ar-Condicionado",
-    description: "Instalação e manutenção de sistemas de refrigeração",
-  },
-  {
-    icon: "🧰",
-    name: "Marceneiro",
-    description: "Móveis planejados e reparos em madeira",
-  },
-];
+import { fetchServiceCategories, ServiceCategory } from "@/utils/serviceCategories";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ServiceCategories = () => {
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getCategories = async () => {
+      setLoading(true);
+      const data = await fetchServiceCategories();
+      setCategories(data);
+      setLoading(false);
+    };
+
+    getCategories();
+  }, []);
+
   return (
     <section id="servicos" className="section py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,13 +32,27 @@ const ServiceCategories = () => {
         </div>
 
         <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category) => (
-            <div key={category.name} className="group relative bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-4xl mb-4">{category.icon}</div>
-              <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
-              <p className="mt-2 text-sm text-gray-500">{category.description}</p>
-            </div>
-          ))}
+          {loading
+            ? Array(8)
+                .fill(0)
+                .map((_, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow-md p-6">
+                    <Skeleton className="h-10 w-10 rounded-full mb-4" />
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4 mt-1" />
+                  </div>
+                ))
+            : categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="group relative bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                >
+                  <div className="text-4xl mb-4">{category.icon}</div>
+                  <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
+                  <p className="mt-2 text-sm text-gray-500">{category.description}</p>
+                </div>
+              ))}
         </div>
 
         <div className="mt-12 text-center">

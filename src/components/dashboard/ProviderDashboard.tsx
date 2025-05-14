@@ -1,73 +1,54 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceRequestMarketplace from "./ServiceRequestMarketplace";
-import ProviderCredits from "./ProviderCredits";
 import UnlockedContacts from "./UnlockedContacts";
 import ProfileEditor from "./ProfileEditor";
+import ProviderCredits from "./ProviderCredits";
 import PortfolioManager from "./PortfolioManager";
+import ProviderSpecialties from "./ProviderSpecialties";
 
 const ProviderDashboard = () => {
-  const [activeTab, setActiveTab] = useState("marketplace");
+  const [activeTab, setActiveTab] = useState("oportunidades");
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Área do Prestador de Serviços</h2>
-        <ProviderCredits />
-      </div>
-
-      <Tabs defaultValue="marketplace" onValueChange={setActiveTab} value={activeTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="marketplace">Oportunidades</TabsTrigger>
-          <TabsTrigger value="unlocks">Contatos Desbloqueados</TabsTrigger>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <TabsList className="mb-6 flex overflow-auto">
+          <TabsTrigger value="oportunidades">Oportunidades</TabsTrigger>
+          <TabsTrigger value="especialidades">Especialidades</TabsTrigger>
+          <TabsTrigger value="contatos">Meus Contatos</TabsTrigger>
           <TabsTrigger value="portfolio">Meu Portfólio</TabsTrigger>
-          <TabsTrigger value="profile">Meu Perfil</TabsTrigger>
+          <TabsTrigger value="creditos">Meus Créditos</TabsTrigger>
+          <TabsTrigger value="perfil">Meu Perfil</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="marketplace" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Oportunidades de Serviço</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ServiceRequestMarketplace />
-            </CardContent>
-          </Card>
+
+        <TabsContent value="oportunidades">
+          <ServiceRequestMarketplace />
         </TabsContent>
-        
-        <TabsContent value="unlocks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Contatos Desbloqueados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UnlockedContacts />
-            </CardContent>
-          </Card>
+
+        <TabsContent value="especialidades">
+          <ProviderSpecialties />
         </TabsContent>
-        
-        <TabsContent value="portfolio" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gerenciar Portfólio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PortfolioManager />
-            </CardContent>
-          </Card>
+
+        <TabsContent value="contatos">
+          <UnlockedContacts />
         </TabsContent>
-        
-        <TabsContent value="profile" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações do Perfil</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProfileEditor />
-            </CardContent>
-          </Card>
+
+        <TabsContent value="portfolio">
+          <PortfolioManager />
+        </TabsContent>
+
+        <TabsContent value="creditos">
+          <ProviderCredits />
+        </TabsContent>
+
+        <TabsContent value="perfil">
+          <ProfileEditor />
         </TabsContent>
       </Tabs>
     </div>
