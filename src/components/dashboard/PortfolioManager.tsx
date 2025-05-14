@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -93,7 +93,11 @@ const PortfolioManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id || !imageFile || !title.trim()) {
-      toast.error("Preencha todos os campos obrigatórios");
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -102,10 +106,23 @@ const PortfolioManager = () => {
     
     try {
       // 1. Upload image to storage
+      // Create a more reliable file path with timestamp and unique ID
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 10);
       const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const fileName = `${timestamp}-${randomId}`;
       const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
+      
+      // Check if storage bucket exists, create if needed
+      const { data: buckets } = await supabase.storage.listBuckets();
+      if (!buckets?.find(bucket => bucket.name === 'portfolio')) {
+        await supabase.storage.createBucket('portfolio', {
+          public: true,
+          fileSizeLimit: 5242880 // 5MB
+        });
+      }
 
+      // Upload the file
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from("portfolio")
         .upload(filePath, imageFile, {
@@ -141,7 +158,11 @@ const PortfolioManager = () => {
         });
 
       if (insertError) {
-        toast.error("Erro ao adicionar item ao portfólio");
+        toast({
+          title: "Erro",
+          description: "Erro ao adicionar item ao portfólio",
+          variant: "destructive",
+        });
         console.error("Error creating portfolio item:", insertError);
         return;
       }
@@ -164,10 +185,17 @@ const PortfolioManager = () => {
         setPortfolioItems(updatedData);
       }
       
-      toast.success("Item adicionado ao portfólio com sucesso");
+      toast({
+        title: "Sucesso",
+        description: "Item adicionado ao portfólio com sucesso",
+      });
     } catch (error) {
       console.error("Error in portfolio submission:", error);
-      toast.error("Erro ao adicionar item ao portfólio");
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar item ao portfólio",
+        variant: "destructive",
+      });
     } finally {
       setIsUploading(false);
     }
@@ -186,7 +214,11 @@ const PortfolioManager = () => {
         .eq("id", id);
 
       if (deleteError) {
-        toast.error("Erro ao excluir item do portfólio");
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir item do portfólio",
+          variant: "destructive",
+        });
         console.error("Error deleting portfolio item:", deleteError);
         return;
       }
@@ -208,10 +240,17 @@ const PortfolioManager = () => {
 
       // 3. Update portfolio list
       setPortfolioItems(portfolioItems.filter(item => item.id !== id));
-      toast.success("Item removido do portfólio");
+      toast({
+        title: "Sucesso",
+        description: "Item removido do portfólio",
+      });
     } catch (error) {
       console.error("Error in delete operation:", error);
-      toast.error("Erro ao excluir item do portfólio");
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir item do portfólio",
+        variant: "destructive",
+      });
     }
   };
 
