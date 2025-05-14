@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import {
@@ -137,7 +138,7 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, "id">
+interface Toast extends Omit<ToasterToast, "id"> {}
 
 function toast(props: Toast) {
   const id = genId()

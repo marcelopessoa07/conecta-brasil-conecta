@@ -19,7 +19,7 @@ type PortfolioItem = {
   provider_id: string;
   title: string;
   description: string | null;
-  image_url: string;
+  image_url: string | null;
   created_at: string;
 };
 
@@ -105,72 +105,84 @@ const PortfolioManager = () => {
     setUploadError(null);
     
     try {
-      let imageUrl = "";
+      let imageUrl = null;
       
       // Only upload image if one is provided
       if (imageFile) {
-        // 1. Upload image to storage
-        // Create a more reliable file path with timestamp and unique ID
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 10);
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${timestamp}-${randomId}`;
-        const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
-        
-        // Check if storage bucket exists, create if needed
-        const { data: buckets } = await supabase.storage.listBuckets();
-        if (!buckets?.find(bucket => bucket.name === 'portfolio')) {
-          await supabase.storage.createBucket('portfolio', {
-            public: true,
-            fileSizeLimit: 5242880 // 5MB
-          });
-        }
+        try {
+          // Check if storage bucket exists, create if needed
+          const { data: buckets } = await supabase.storage.listBuckets();
+          if (!buckets?.find(bucket => bucket.name === 'portfolio')) {
+            await supabase.storage.createBucket('portfolio', {
+              public: true,
+              fileSizeLimit: 5242880 // 5MB
+            });
+          }
+          
+          // 1. Upload image to storage
+          // Create a more reliable file path with timestamp and unique ID
+          const timestamp = Date.now();
+          const randomId = Math.random().toString(36).substring(2, 10);
+          const fileExt = imageFile.name.split(".").pop();
+          const fileName = `${timestamp}-${randomId}`;
+          const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
 
-        // Upload the file
-        const { error: uploadError, data: uploadData } = await supabase.storage
-          .from("portfolio")
-          .upload(filePath, imageFile, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: imageFile.type,
-          });
+          // Upload the file
+          const { error: uploadError, data: uploadData } = await supabase.storage
+            .from("portfolio")
+            .upload(filePath, imageFile, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: imageFile.type,
+            });
 
-        if (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          setUploadError("Erro ao fazer upload da imagem. Por favor, tente novamente.");
+          if (uploadError) {
+            console.error("Error uploading image:", uploadError);
+            setUploadError("Erro ao fazer upload da imagem. Por favor, tente novamente.");
+            setIsUploading(false);
+            return;
+          }
+
+          // 2. Get public URL
+          const { data: publicURL } = supabase.storage
+            .from("portfolio")
+            .getPublicUrl(filePath);
+
+          if (!publicURL) {
+            setUploadError("Erro ao obter URL da imagem");
+            setIsUploading(false);
+            return;
+          }
+          
+          imageUrl = publicURL.publicUrl;
+        } catch (imageError) {
+          console.error("Error processing image:", imageError);
+          setUploadError("Erro ao processar imagem");
+          setIsUploading(false);
           return;
         }
-
-        // 2. Get public URL
-        const { data: publicURL } = supabase.storage
-          .from("portfolio")
-          .getPublicUrl(filePath);
-
-        if (!publicURL) {
-          setUploadError("Erro ao obter URL da imagem");
-          return;
-        }
-        
-        imageUrl = publicURL.publicUrl;
       }
 
       // 3. Create portfolio item with or without image
+      const portfolioData = {
+        provider_id: user.id,
+        title,
+        description,
+        image_url: imageUrl, // Can be null if no image was provided
+      };
+      
       const { error: insertError } = await supabase
         .from("provider_portfolio")
-        .insert({
-          provider_id: user.id,
-          title,
-          description,
-          image_url: imageUrl || null, // Use null if no image was provided
-        });
+        .insert(portfolioData);
 
       if (insertError) {
+        console.error("Error creating portfolio item:", insertError);
         toast({
           title: "Erro",
           description: "Erro ao adicionar item ao portfólio",
           variant: "destructive",
         });
-        console.error("Error creating portfolio item:", insertError);
+        setIsUploading(false);
         return;
       }
 
@@ -208,7 +220,7 @@ const PortfolioManager = () => {
     }
   };
 
-  const handleDelete = async (id: string, imageUrl: string) => {
+  const handleDelete = async (id: string, imageUrl: string | null) => {
     if (!confirm("Tem certeza que deseja excluir este item do portfólio?")) {
       return;
     }
@@ -232,14 +244,16 @@ const PortfolioManager = () => {
       
       // 2. Delete image from storage (if possible - may fail if URL format is not recognized)
       try {
-        // Extract the path from the URL
-        const urlParts = imageUrl.split("/");
-        const bucketName = "portfolio";
-        const pathParts = urlParts.slice(urlParts.indexOf(bucketName) + 1);
-        const path = pathParts.join("/");
-        
-        if (path) {
-          await supabase.storage.from(bucketName).remove([path]);
+        if (imageUrl) {
+          // Extract the path from the URL
+          const urlParts = imageUrl.split("/");
+          const bucketName = "portfolio";
+          const pathParts = urlParts.slice(urlParts.indexOf(bucketName) + 1);
+          const path = pathParts.join("/");
+          
+          if (path) {
+            await supabase.storage.from(bucketName).remove([path]);
+          }
         }
       } catch (imgError) {
         console.warn("Could not delete image file:", imgError);
