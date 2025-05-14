@@ -42,6 +42,7 @@ const AdminDashboard = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="usuarios">Gerenciar Usuários</TabsTrigger>
             <TabsTrigger value="categorias">Gerenciar Categorias</TabsTrigger>
+            <TabsTrigger value="perfil">Meu Perfil</TabsTrigger>
           </TabsList>
 
           <TabsContent value="usuarios">
@@ -62,6 +63,20 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <AdminCategoriesManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="perfil">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações do Perfil</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Gerencie suas informações de perfil administrativo.
+                </p>
+                {/* Podemos adicionar aqui um componente para edição do perfil admin */}
               </CardContent>
             </Card>
           </TabsContent>

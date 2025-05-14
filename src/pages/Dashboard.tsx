@@ -39,6 +39,11 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Redirect admin users to the admin dashboard
+  if (user.profile?.user_type === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  
   // Make sure we're using the correct user type from the profile
   const userType = user.profile?.user_type || "client";
   
