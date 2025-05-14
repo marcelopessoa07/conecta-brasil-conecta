@@ -63,12 +63,6 @@ const ServiceCategories = () => {
               <div className="text-4xl mb-4">{category.icon}</div>
               <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
               <p className="mt-2 text-sm text-gray-500">{category.description}</p>
-              <a href="#" className="mt-3 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
-                Encontrar profissionais
-                <svg className="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
             </div>
           ))}
         </div>
