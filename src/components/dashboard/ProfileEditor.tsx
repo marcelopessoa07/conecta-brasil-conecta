@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +28,9 @@ const profileSchema = z.object({
   address: z.string().optional(),
   experience: z.string().optional(),
   service_areas: z.string().optional(),
+  services_offered: z.string().optional(), // New field for services offered
+  availability: z.string().optional(), // New field for availability
+  pricing_info: z.string().optional(), // New field for pricing information
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -51,6 +53,9 @@ const ProfileEditor = () => {
       address: "",
       experience: "",
       service_areas: "",
+      services_offered: "",
+      availability: "",
+      pricing_info: "",
     },
   });
 
@@ -81,6 +86,9 @@ const ProfileEditor = () => {
             address: data.address || "",
             experience: data.experience || "",
             service_areas: data.service_areas ? data.service_areas.join(", ") : "",
+            services_offered: data.services_offered || "",
+            availability: data.availability || "",
+            pricing_info: data.pricing_info || "",
           });
           setProfileImage(data.photo);
         }
@@ -114,6 +122,9 @@ const ProfileEditor = () => {
           address: values.address,
           experience: values.experience,
           service_areas: serviceAreas,
+          services_offered: values.services_offered,
+          availability: values.availability,
+          pricing_info: values.pricing_info,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -185,6 +196,9 @@ const ProfileEditor = () => {
     }
   };
 
+  // Show different profile sections based on user type
+  const isProvider = user?.profile?.user_type === "professional";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-6">
@@ -219,9 +233,14 @@ const ProfileEditor = () => {
           </div>
         </div>
         <div>
-          <h2 className="text-xl font-semibold">Seu Perfil Profissional</h2>
+          <h2 className="text-xl font-semibold">
+            {isProvider ? "Seu Perfil Profissional" : "Seu Perfil"}
+          </h2>
           <p className="text-sm text-gray-500">
-            Mantenha seu perfil atualizado para atrair mais clientes
+            {isProvider 
+              ? "Mantenha seu perfil atualizado para atrair mais clientes"
+              : "Mantenha seu perfil atualizado"
+            }
           </p>
         </div>
       </div>
@@ -258,84 +277,181 @@ const ProfileEditor = () => {
             />
           </div>
 
-          <Separator />
-          <h3 className="text-lg font-medium">Dados Profissionais</h3>
+          {isProvider && (
+            <>
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Dados Profissionais</h3>
+              </div>
 
-          <FormField
-            control={form.control}
-            name="profession"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Profissão/Especialidade*</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Eletricista, Encanador, Designer" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="profession"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profissão/Especialidade*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Eletricista, Encanador, Designer" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="bio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Biografia</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Descreva sua experiência, formação e especialidades..."
-                    {...field}
-                    className="min-h-[100px]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Biografia</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descreva sua experiência, formação e especialidades..."
+                        {...field}
+                        className="min-h-[100px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade/Estado*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: São Paulo, SP" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade/Estado*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: São Paulo, SP" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="experience"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Anos de Experiência</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: 5 anos" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Anos de Experiência</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 5 anos" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <FormField
-            control={form.control}
-            name="service_areas"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Áreas de Atuação</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ex: Zona Sul, Zona Oeste (separados por vírgula)" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="service_areas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Áreas de Atuação</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Zona Sul, Zona Oeste (separados por vírgula)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Detalhes dos Serviços Oferecidos</h3>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="services_offered"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Serviços Oferecidos</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Liste todos os serviços que você oferece, ex: Instalação elétrica, Reparos, Manutenção preventiva..."
+                        {...field}
+                        className="min-h-[100px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="availability"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Disponibilidade</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Segunda a Sexta, 8h às 18h" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pricing_info"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Informações de Preços</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descreva sua política de preços, valores médios, ou como você cobra pelos seus serviços..."
+                        {...field}
+                        className="min-h-[80px]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
+          {!isProvider && (
+            <>
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Localização</h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade/Estado</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: São Paulo, SP" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Seu endereço" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end">
             <Button 

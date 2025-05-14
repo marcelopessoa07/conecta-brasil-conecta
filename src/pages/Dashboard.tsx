@@ -6,9 +6,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ClientDashboard from "@/components/dashboard/ClientDashboard";
 import ProviderDashboard from "@/components/dashboard/ProviderDashboard";
+import { toast } from "sonner";
 
 const Dashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -16,6 +17,13 @@ const Dashboard = () => {
       setIsInitialized(true);
     }
   }, [loading]);
+
+  useEffect(() => {
+    // Refresh profile on component mount to ensure we have the latest data
+    if (user) {
+      refreshProfile();
+    }
+  }, [refreshProfile, user]);
 
   useEffect(() => {
     if (user?.profile) {
@@ -31,6 +39,7 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Make sure we're using the correct user type from the profile
   const userType = user.profile?.user_type || "client";
   
   console.log("Rendering dashboard for user type:", userType);

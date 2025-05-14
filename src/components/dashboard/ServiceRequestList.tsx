@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { Database } from "@/integrations/supabase/database-types";
+import { Link, useNavigate } from "react-router-dom";
 
 type ServiceRequest = Database['public']['Tables']['service_requests']['Row'];
 
@@ -14,6 +15,7 @@ const ServiceRequestList = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -57,6 +59,10 @@ const ServiceRequestList = () => {
     }
   };
 
+  const viewRequestDetails = (id: string) => {
+    navigate(`/request/${id}`);
+  };
+
   if (loading) {
     return <div>Carregando solicitações...</div>;
   }
@@ -66,7 +72,7 @@ const ServiceRequestList = () => {
       <div className="text-center py-8">
         <p>Você ainda não tem solicitações de serviço.</p>
         <Button className="mt-4" asChild>
-          <a href="/new-request">Criar Solicitação</a>
+          <Link to="/new-request">Criar Solicitação</Link>
         </Button>
       </div>
     );
@@ -92,10 +98,11 @@ const ServiceRequestList = () => {
             <p className="text-sm">{request.description.substring(0, 100)}...</p>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline">
-              Editar
-            </Button>
-            <Button size="sm" variant="outline">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => viewRequestDetails(request.id)}
+            >
               Ver Detalhes
             </Button>
           </div>
