@@ -89,6 +89,7 @@ export interface Database {
           status: string
           created_at: string
           updated_at: string
+          accepted_provider_id: string | null
         }
         Insert: {
           id?: string
@@ -104,6 +105,7 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          accepted_provider_id?: string | null
         }
         Update: {
           id?: string
@@ -119,6 +121,7 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          accepted_provider_id?: string | null
         }
       }
       service_categories: {
