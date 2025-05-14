@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -17,7 +17,17 @@ import { Home, User, PlusCircle, LogOut, LogIn, UserPlus, Settings } from "lucid
 
 const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
   
   return (
     <div className="sticky top-0 z-30 flex w-full justify-center bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +65,7 @@ const Navigation = () => {
               )}
               
               <NavigationMenuItem>
-                <Button variant="ghost" onClick={signOut} className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}>
+                <Button variant="ghost" onClick={handleSignOut} className={cn(navigationMenuTriggerStyle(), "cursor-pointer")}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </Button>
