@@ -8,6 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/database-types";
+import { Share2 } from "lucide-react";
 
 type ServiceRequest = Database['public']['Tables']['service_requests']['Row'];
 
@@ -142,12 +143,23 @@ const ServiceRequestMarketplace = () => {
         ...prev,
         [requestId]: true
       }));
+      
+      // 6. Remove this request from display since it's now accepted
+      setRequests(prev => prev.filter(req => req.id !== requestId));
 
-      toast.success("Contato desbloqueado com sucesso!");
+      toast.success("Contato desbloqueado com sucesso! O cliente foi notificado que você tem interesse no serviço.");
     } catch (error) {
       console.error("Error unlocking contact:", error);
       toast.error("Ocorreu um erro ao desbloquear o contato.");
     }
+  };
+
+  const handleCopyProfileLink = () => {
+    if (!user?.id) return;
+    
+    const profileUrl = `${window.location.origin}/provider/${user.id}`;
+    navigator.clipboard.writeText(profileUrl);
+    toast.success("Link do seu perfil copiado para a área de transferência!");
   };
 
   if (loading) {
@@ -163,40 +175,54 @@ const ServiceRequestMarketplace = () => {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {requests.map((request) => (
-        <Card key={request.id}>
-          <CardContent className="p-4">
-            <h3 className="font-bold text-lg mb-1">{request.title}</h3>
-            <div className="text-sm text-gray-500 mb-2">
-              <span className="mr-2">
-                {format(new Date(request.created_at), "dd/MM/yyyy", { locale: ptBR })}
-              </span>
-              <span>·</span>
-              <span className="ml-2">{request.location}</span>
-            </div>
-            <div className="mb-2">
-              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                {request.category}
-              </span>
-            </div>
-            <p className="text-gray-700 mb-4 line-clamp-2">{request.description}</p>
-            
-            {unlocks[request.id] ? (
-              <Button className="w-full bg-green-600 hover:bg-green-700">
-                Ver Contato do Cliente
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => handleUnlock(request.id)} 
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                Desbloquear Contato (1 crédito)
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+    <div>
+      <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+        <h3 className="font-medium text-green-800 mb-2">Seu link de perfil para compartilhar com clientes</h3>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-white p-2 rounded border border-green-100 text-sm overflow-hidden text-ellipsis">
+            {`${window.location.origin}/provider/${user?.id}`}
+          </div>
+          <Button size="sm" onClick={handleCopyProfileLink} className="flex items-center">
+            <Share2 className="h-4 w-4 mr-1" /> Copiar Link
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        {requests.map((request) => (
+          <Card key={request.id}>
+            <CardContent className="p-4">
+              <h3 className="font-bold text-lg mb-1">{request.title}</h3>
+              <div className="text-sm text-gray-500 mb-2">
+                <span className="mr-2">
+                  {format(new Date(request.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                </span>
+                <span>·</span>
+                <span className="ml-2">{request.location}</span>
+              </div>
+              <div className="mb-2">
+                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  {request.category}
+                </span>
+              </div>
+              <p className="text-gray-700 mb-4 line-clamp-2">{request.description}</p>
+              
+              {unlocks[request.id] ? (
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Contato Desbloqueado
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => handleUnlock(request.id)} 
+                  className="w-full bg-primary hover:bg-primary/90"
+                >
+                  Desbloquear Contato (1 crédito)
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

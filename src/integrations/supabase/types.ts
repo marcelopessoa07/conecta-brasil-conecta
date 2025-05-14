@@ -274,6 +274,7 @@ export type Database = {
       }
       service_requests: {
         Row: {
+          accepted_provider_id: string | null
           category: string
           category_id: string | null
           client_id: string
@@ -289,6 +290,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_provider_id?: string | null
           category: string
           category_id?: string | null
           client_id: string
@@ -304,6 +306,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_provider_id?: string | null
           category?: string
           category_id?: string | null
           client_id?: string

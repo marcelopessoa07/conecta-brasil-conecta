@@ -46,6 +46,7 @@ const RequestDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [request, setRequest] = useState<ServiceRequest | null>(null);
+  const [providerProfile, setProviderProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -90,6 +91,19 @@ const RequestDetail = () => {
         }
 
         setRequest(data);
+        
+        // If there's an accepted provider, fetch their profile
+        if (data.accepted_provider_id) {
+          const { data: providerData, error: providerError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", data.accepted_provider_id)
+            .single();
+            
+          if (!providerError && providerData) {
+            setProviderProfile(providerData);
+          }
+        }
         
         // Format the date for the form if it exists
         const formattedDate = data.preferred_date 
@@ -158,6 +172,8 @@ const RequestDetail = () => {
     switch (status) {
       case "open":
         return <Badge variant="default">Em aberto</Badge>;
+      case "accepted":
+        return <Badge variant="success" className="bg-green-500">Recebido por prestador</Badge>;
       case "in_progress":
         return <Badge variant="secondary">Em andamento</Badge>;
       case "completed":
@@ -193,6 +209,35 @@ const RequestDetail = () => {
             <Button onClick={() => setIsEditing(true)}>Editar Solicitação</Button>
           )}
         </div>
+
+        {request?.status === "accepted" && providerProfile && (
+          <Card className="mb-6 bg-green-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800">Prestador interessado no seu serviço</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-green-200 flex items-center justify-center text-2xl text-green-700">
+                  {providerProfile.photo ? (
+                    <img src={providerProfile.photo} alt={providerProfile.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    providerProfile.name?.charAt(0)
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-medium text-lg">{providerProfile.name}</h3>
+                  <p className="text-green-700">{providerProfile.profession}</p>
+                  <Link 
+                    to={`/provider/${request.accepted_provider_id}`}
+                    className="text-primary flex items-center mt-2 hover:underline"
+                  >
+                    Ver perfil completo <ExternalLink className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

@@ -1,0 +1,241 @@
+
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { BadgeCheck, MapPin, Phone, Mail, Star } from "lucide-react";
+
+const ProviderProfile = () => {
+  const { id } = useParams<{ id: string }>();
+  const [provider, setProvider] = useState<any>(null);
+  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProvider = async () => {
+      try {
+        // Fetch provider profile
+        const { data: providerData, error: providerError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (providerError) {
+          console.error("Error fetching provider:", providerError);
+          return;
+        }
+
+        setProvider(providerData);
+
+        // Fetch provider portfolio
+        const { data: portfolioData, error: portfolioError } = await supabase
+          .from("provider_portfolio")
+          .select("*")
+          .eq("provider_id", id)
+          .order("created_at", { ascending: false });
+
+        if (!portfolioError) {
+          setPortfolio(portfolioData || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProvider();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <div>Carregando perfil do prestador...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!provider) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Prestador não encontrado</h2>
+            <p>O perfil deste prestador não está disponível.</p>
+            <Button className="mt-4" asChild>
+              <Link to="/">Voltar para a página inicial</Link>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center text-4xl">
+                  {provider.photo ? (
+                    <img src={provider.photo} alt={provider.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    provider.name?.charAt(0)
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-2xl md:text-3xl font-bold">{provider.name}</h1>
+                    {provider.verified && (
+                      <BadgeCheck className="h-6 w-6 text-blue-500" />
+                    )}
+                  </div>
+                  <p className="text-lg text-muted-foreground mb-2">
+                    {provider.profession || "Profissional"}
+                  </p>
+
+                  <div className="flex items-center gap-1 mb-3">
+                    {provider.rating && (
+                      <div className="flex items-center mr-2">
+                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+                        <span>{provider.rating}</span>
+                        <span className="text-muted-foreground ml-1">
+                          ({provider.reviews_count || 0} avaliações)
+                        </span>
+                      </div>
+                    )}
+                    {provider.completed_jobs > 0 && (
+                      <span className="text-green-600 text-sm font-medium">
+                        {provider.completed_jobs} serviços concluídos
+                      </span>
+                    )}
+                  </div>
+
+                  {provider.location && (
+                    <div className="flex items-center text-muted-foreground mb-2">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{provider.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full md:w-auto mt-4 md:mt-0">
+                  <div className="space-y-2">
+                    {provider.phone && (
+                      <Button className="w-full flex items-center justify-center gap-2" variant="outline">
+                        <Phone className="h-4 w-4" />
+                        {provider.phone}
+                      </Button>
+                    )}
+                    <Button className="w-full flex items-center justify-center gap-2" variant="default">
+                      <Mail className="h-4 w-4" />
+                      Contatar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Sobre</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{provider.bio || "O prestador não adicionou uma biografia."}</p>
+                </CardContent>
+              </Card>
+
+              {portfolio.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Portfólio</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {portfolio.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="border rounded-md overflow-hidden"
+                        >
+                          {item.image_url && (
+                            <img 
+                              src={item.image_url} 
+                              alt={item.title} 
+                              className="w-full h-40 object-cover"
+                            />
+                          )}
+                          <div className="p-3">
+                            <h3 className="font-medium">{item.title}</h3>
+                            {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            <div>
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Especialidades</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {provider.specialties && provider.specialties.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {provider.specialties.map((specialty: string, index: number) => (
+                        <span 
+                          key={index} 
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                        >
+                          {specialty}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">
+                      Nenhuma especialidade listada
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {provider.experience && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Experiência</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{provider.experience}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default ProviderProfile;

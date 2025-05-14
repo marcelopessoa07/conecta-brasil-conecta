@@ -8,8 +8,11 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { Database } from "@/integrations/supabase/database-types";
 import { Link, useNavigate } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 
-type ServiceRequest = Database['public']['Tables']['service_requests']['Row'];
+type ServiceRequest = Database['public']['Tables']['service_requests']['Row'] & {
+  provider_name?: string;
+};
 
 const ServiceRequestList = () => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -33,7 +36,26 @@ const ServiceRequestList = () => {
           return;
         }
 
-        setRequests(data || []);
+        // Fetch provider information for accepted requests
+        const requestsWithProviders = await Promise.all(
+          (data || []).map(async (request) => {
+            if (request.accepted_provider_id) {
+              const { data: providerData } = await supabase
+                .from("profiles")
+                .select("name")
+                .eq("id", request.accepted_provider_id)
+                .single();
+              
+              return {
+                ...request,
+                provider_name: providerData?.name || "Prestador"
+              };
+            }
+            return request;
+          })
+        );
+
+        setRequests(requestsWithProviders);
       } catch (error) {
         console.error("Error in fetch operation:", error);
       } finally {
@@ -48,6 +70,8 @@ const ServiceRequestList = () => {
     switch (status) {
       case "open":
         return <Badge variant="default">Em aberto</Badge>;
+      case "accepted":
+        return <Badge variant="success" className="bg-green-500">Recebido por prestador</Badge>;
       case "in_progress":
         return <Badge variant="secondary">Em andamento</Badge>;
       case "completed":
@@ -96,6 +120,18 @@ const ServiceRequestList = () => {
               })}
             </p>
             <p className="text-sm">{request.description.substring(0, 100)}...</p>
+            
+            {request.status === "accepted" && request.provider_name && (
+              <div className="mt-2 text-sm text-green-600">
+                <p>Prestador interessado: {request.provider_name}</p>
+                <Link 
+                  to={`/provider/${request.accepted_provider_id}`}
+                  className="text-primary inline-flex items-center mt-1 hover:underline"
+                >
+                  Ver perfil do prestador <ExternalLink className="ml-1 h-3 w-3" />
+                </Link>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <Button 
