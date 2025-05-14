@@ -174,9 +174,6 @@ const AllCategories = () => {
                 <div className="text-4xl mb-4">{category.icon}</div>
                 <h3 className="text-lg font-medium text-gray-900">{category.name}</h3>
                 <p className="mt-2 text-sm text-gray-500">{category.description}</p>
-                <Button variant="link" className="mt-3 text-primary p-0 h-auto">
-                  Encontrar profissionais
-                </Button>
               </div>
             ))}
           </div>
