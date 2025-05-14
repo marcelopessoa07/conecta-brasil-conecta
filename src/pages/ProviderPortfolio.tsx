@@ -1,12 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BadgeCheck, MapPin, Phone, Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { BadgeCheck, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
 
 type PortfolioItem = {
   id: string;
@@ -142,21 +142,6 @@ const ProviderPortfolio = () => {
                     </div>
                   )}
                 </div>
-
-                <div className="w-full md:w-auto mt-4 md:mt-0">
-                  <div className="space-y-2">
-                    {provider.phone && (
-                      <Button className="w-full flex items-center justify-center gap-2" variant="outline">
-                        <Phone className="h-4 w-4" />
-                        {provider.phone}
-                      </Button>
-                    )}
-                    <Button className="w-full flex items-center justify-center gap-2" variant="default">
-                      <Mail className="h-4 w-4" />
-                      Contatar
-                    </Button>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -191,13 +176,6 @@ const ProviderPortfolio = () => {
               ))}
             </div>
           )}
-          
-          <div className="mt-6">
-            <Button asChild variant="outline">
-              <Link to={`/provider/${id}`}>Ver perfil completo do prestador</Link>
-            </Button>
-          </div>
-          
         </div>
       </main>
       <Footer />

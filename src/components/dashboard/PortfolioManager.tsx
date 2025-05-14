@@ -7,15 +7,11 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Grid, Trash2, Plus, Upload, Image } from "lucide-react";
+import { Trash2, Plus, Upload, Image } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type PortfolioItem = {
@@ -37,6 +33,7 @@ const PortfolioManager = () => {
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -67,7 +64,21 @@ const PortfolioManager = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setUploadError(null);
+    
     if (!file) return;
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("A imagem deve ter no máximo 5MB");
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setUploadError("O arquivo deve ser uma imagem");
+      return;
+    }
 
     setImageFile(file);
 
@@ -87,18 +98,25 @@ const PortfolioManager = () => {
     }
 
     setIsUploading(true);
+    setUploadError(null);
+    
     try {
       // 1. Upload image to storage
       const fileExt = imageFile.name.split(".").pop();
-      const filePath = `portfolio/${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const filePath = `portfolio/${user.id}/${fileName}.${fileExt}`;
 
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from("portfolio")
-        .upload(filePath, imageFile);
+        .upload(filePath, imageFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: imageFile.type,
+        });
 
       if (uploadError) {
-        toast.error("Erro ao fazer upload da imagem");
         console.error("Error uploading image:", uploadError);
+        setUploadError("Erro ao fazer upload da imagem. Por favor, tente novamente.");
         return;
       }
 
@@ -108,7 +126,7 @@ const PortfolioManager = () => {
         .getPublicUrl(filePath);
 
       if (!publicURL) {
-        toast.error("Erro ao obter URL da imagem");
+        setUploadError("Erro ao obter URL da imagem");
         return;
       }
 
@@ -175,9 +193,14 @@ const PortfolioManager = () => {
       
       // 2. Delete image from storage (if possible - may fail if URL format is not recognized)
       try {
-        const path = imageUrl.split("/").slice(-2).join("/");
+        // Extract the path from the URL
+        const urlParts = imageUrl.split("/");
+        const bucketName = "portfolio";
+        const pathParts = urlParts.slice(urlParts.indexOf(bucketName) + 1);
+        const path = pathParts.join("/");
+        
         if (path) {
-          await supabase.storage.from("portfolio").remove([path]);
+          await supabase.storage.from(bucketName).remove([path]);
         }
       } catch (imgError) {
         console.warn("Could not delete image file:", imgError);
@@ -267,6 +290,9 @@ const PortfolioManager = () => {
                         <span className="text-sm text-gray-500">
                           Clique para selecionar uma imagem
                         </span>
+                        <span className="text-xs text-gray-400 mt-1">
+                          Máximo: 5MB | JPG, PNG
+                        </span>
                       </div>
                       <input
                         id="image-upload"
@@ -279,6 +305,9 @@ const PortfolioManager = () => {
                     </label>
                   )}
                 </div>
+                {uploadError && (
+                  <p className="text-destructive text-sm mt-1">{uploadError}</p>
+                )}
               </div>
               
               <Button 
